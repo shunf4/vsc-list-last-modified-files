@@ -80,10 +80,30 @@ function activate(context) {
 				pendingContent = "";
 				lineI = 0;
 				clickables = [];
-				for (let i = 0; i < 6; i++) {
-					pendingContent += '\n';
-					lineI++;
-				}
+				// for (let i = 0; i < 6; i++) {
+				// 	pendingContent += '\n';
+				// 	lineI++;
+				// }
+
+				pendingContent += '\n';
+				lineI++;
+				pendingContent += '\n';
+				lineI++;
+				pendingContent += '\n';
+				lineI++;
+				pendingContent += '\n';
+				lineI++;
+				pendingContent += '\n';
+				lineI++;
+				pendingContent += '\n';
+				lineI++;
+				pendingContent += '\n';
+				lineI++;
+				pendingContent += 'Last Modified Files in <WorkspaceRoot>/' + folderPathStr.replace(/\\/g, '/') + '\n';
+				lineI++;
+				pendingContent += '\n';
+				lineI++;
+
 				let currLine = '';
 				currLine += ' ';
 				let currString = 'Refresh';
