@@ -1,0 +1,72 @@
+{
+  "name": "list-last-modified-files",
+  "displayName": "List Last Modified Files",
+  "license": "MIT",
+  "description": "",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "repository": {
+    "url": "https://github.com/shunf4/vsc-list-last-modified-files"
+  },
+  "author": {
+    "name": "shunf4"
+  },
+  "publisher": "shunf4",
+  "activationEvents": [],
+  "main": "./extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "list-last-modified-files.listLastModifiedFilesRoot",
+        "title": "LLMF: List Last Modified Files"
+      },
+      {
+        "command": "list-last-modified-files.listLastModifiedFilesFolder",
+        "title": "LLMF: List Last Modified Files In Folder"
+      }
+    ],
+    "menus": {
+      "explorer/context": [
+        {
+          "command": "list-last-modified-files.listLastModifiedFilesFolder",
+          "when": "explorerResourceIsFolder",
+          "group": "list-last-modified-files"
+        }
+      ],
+      "editor/context": [
+        {
+          "command": "list-last-modified-files.listLastModifiedFilesRoot",
+          "group": "list-last-modified-files"
+        }
+      ]
+    },
+    "resourceLabelFormatters": [
+      {
+        "scheme": "list-last-modified-files",
+        "formatting": {
+          "label": "${query.title}",
+          "separator": "/"
+        }
+      }
+    ]
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "pretest": "npm run lint",
+    "test": "vscode-test"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.85.0",
+    "@types/mocha": "^10.0.6",
+    "@types/node": "18.x",
+    "eslint": "^8.56.0",
+    "typescript": "^5.3.3",
+    "@vscode/test-cli": "^0.0.4",
+    "@vscode/test-electron": "^2.3.8"
+  }
+}
