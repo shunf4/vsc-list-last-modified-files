@@ -47,13 +47,19 @@ function activate(context) {
 			const findRawResult = (await new Promise((resolve, reject) => {
 				childProcess.exec(
 					(() => {
-						let command = 'sh -c "find \"' + folderPathStr.replace(/\\/g, '/') + '\" -type f -exec stat -c %y\\ \\ \\ \\ \\ %n {} + | sort -r | head -150 | iconv -t utf-8"';
-						if (process.platform === 'win32') {
-							command = 'busybox ' + command;
+						let command = vscode.workspace.getConfiguration('list-last-modified-files').get('customCommand');
+						if (!command) {
+							command = 'sh -c "find \"{baseDirPath}\" -type f -exec stat -c %y\\ \\ \\ \\ \\ %n {} + | sort -r | head -150 | iconv -t utf-8"';
+							if (process.platform === 'win32') {
+								command = 'busybox ' + command;
+							}
+							if (process.platform === 'darwin') {
+								command = 'sh -c "find \"{baseDirPath}\" -type f -exec stat -f %Sm\\ \\ \\ \\ \\ %N -t %F\\ %T {} + | sort -r | head -150"';
+							}
 						}
-						if (process.platform === 'darwin') {
-							command = 'sh -c "find \"' + folderPathStr.replace(/\\/g, '/') + '\" -type f -exec stat -f %Sm\\ \\ \\ \\ \\ %N -t %F\\ %T {} + | sort -r | head -150"';
-						}
+
+						command = command.replace('{baseDirPath}', folderPathStr.replace(/\\/g, '/'));
+						
 						return command;
 					})(),
 					{ encoding: 'utf8', cwd: vscode.workspace.rootPath },
@@ -86,7 +92,7 @@ function activate(context) {
 					isAlreadyClicked: false,
 					click: function (editor) {
 						this.isAlreadyClicked = true;
-						editor.setDecorations(alreadyClickedDecor, [this.range]);
+						setAlreadyClickedDecorations(editor);
 						refreshDoc(doc, false);
 					},
 				});
@@ -99,11 +105,13 @@ function activate(context) {
 					isAlreadyClicked: false,
 					click: function (editor) {
 						this.isAlreadyClicked = true;
-						editor.setDecorations(alreadyClickedDecor, [this.range]);
+						setAlreadyClickedDecorations(editor);
 						refreshDoc(doc, true);
 					},
 				});
 				currLine += currString;
+
+				currLine += '  ';
 
 				pendingContent += currLine;
 				pendingContent += '\n';
@@ -144,9 +152,9 @@ function activate(context) {
 					isAlreadyClicked: false,
 					click: function (editor) {
 						this.isAlreadyClicked = true;
-						editor.setDecorations(alreadyClickedDecor, [range]);
+						setAlreadyClickedDecorations(editor);
 						vscode.workspace.openTextDocument(vscode.Uri.parse(
-							'file:///' + path.resolve(vscode.workspace.rootPath, filePath).replace(/\\/g, '/')
+							'file:' + path.resolve(vscode.workspace.rootPath, filePath).replace(/\\/g, '/')
 						)).then(async doc2 => {
 							vscode.window.showTextDocument(doc2, {
 								preview: false,
@@ -206,17 +214,21 @@ function activate(context) {
 		color: new vscode.ThemeColor('editorLink.activeForeground'),
 	});
 
-	const setDecorations = (editor) => {
-		if (!editor || editor.document.uri.scheme !== "list-last-modified-files") {
-			return;
-		}
-
+	const setAlreadyClickedDecorations = (editor) => {
 		editor.setDecorations(
 			alreadyClickedDecor,
 			clickables.filter(clickable => clickable.isAlreadyClicked).map(clickable => {
 				return clickable.range;
 			})
 		);
+	};
+
+	const setDecorations = (editor) => {
+		if (!editor || editor.document.uri.scheme !== "list-last-modified-files") {
+			return;
+		}
+
+		setAlreadyClickedDecorations(editor);
 		editor.setDecorations(
 			d3,
 			clickables.map(clickable => {
