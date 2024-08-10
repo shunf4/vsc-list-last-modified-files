@@ -45,27 +45,29 @@ function activate(context) {
 			lock = true;
 
 			const findRawResult = (await new Promise((resolve, reject) => {
-				childProcess.exec(
-					(() => {
-						let command = vscode.workspace.getConfiguration('list-last-modified-files').get('customCommand');
-						if (!command) {
-							command = 'sh -c "find \"{baseDirPath}\" -type f -exec stat -c %y\\ \\ \\ \\ \\ %n {} + | sort -r | head -150 | iconv -t utf-8"';
-							if (process.platform === 'win32') {
-								command = 'busybox ' + command;
-							}
-							if (process.platform === 'darwin') {
-								command = 'sh -c "find \"{baseDirPath}\" -type f -exec stat -f %Sm\\ \\ \\ \\ \\ %N -t %F\\ %T {} + | sort -r | head -150"';
-							}
+				const command = (() => {
+					let command = vscode.workspace.getConfiguration('list-last-modified-files').get('customCommand');
+					if (!command) {
+						command = 'sh -c "find \\\"{baseDirPath}\\\" -type f -exec stat -c %y\\ \\ \\ \\ \\ %n {} + | sort -r | head -150 | iconv -t utf-8"';
+						if (process.platform === 'win32') {
+							command = 'busybox ' + command;
 						}
+						if (process.platform === 'darwin') {
+							command = 'sh -c "find \\\"{baseDirPath}\\\" -type f -exec stat -f %Sm\\ \\ \\ \\ \\ %N -t %F\\ %T {} + | sort -r | head -150"';
+						}
+					}
 
-						command = command.replace('{baseDirPath}', folderPathStr.replace(/\\/g, '/'));
-						
-						return command;
-					})(),
+					command = command.replace('{baseDirPath}', folderPathStr.replace(/\\/g, '/'));
+					
+					return command;
+				})();
+				childProcess.exec(
+					command,
 					{ encoding: 'utf8', cwd: vscode.workspace.rootPath },
 					(err, stdout) => {
 						if (err) {
-							reject(err);
+							console.error("command", command, "error:", err);
+							resolve(stdout || '');
 						} else {
 							resolve(stdout);
 						}
